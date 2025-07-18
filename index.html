@@ -63,59 +63,56 @@
   </div>
 
   <script>
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec";  // ← paste your /exec URL here
+    // ← Paste your deployed /exec URL here:
+    const WEB_APP_URL = "https://script.google.com/macros/s/YOUR_ID/exec";
 
-  // Quick connectivity test
-  async function pingApi() {
-    const status = document.getElementById('status');
-    try {
-      const res = await fetch(WEB_APP_URL);
-      const text = await res.text();
-      status.textContent = "Ping: " + text;
-    } catch (err) {
-      status.textContent = "❌ Ping failed: " + err.message;
-    }
-  }
-
-  // Main upload flow
-  async function uploadImage() {
-    const fileInput = document.getElementById('fileInput');
-    const file = fileInput.files[0];
-    const spinner = document.getElementById('spinner');
-    const status  = document.getElementById('status');
-
-    if (!file) {
-      status.textContent = "⚠️ Please select a photo.";
-      return;
-    }
-
-    spinner.style.display = "block";
-    status.textContent = "⏳ Uploading...";
-
-    const reader = new FileReader();
-    reader.onload = async () => {
-      // Strip prefix so backend sees only raw base64
-      const base64 = reader.result.replace(/^data:image\/\w+;base64,/, "");
-
+    async function pingApi() {
+      const status = document.getElementById('status');
       try {
-        const res = await fetch(WEB_APP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: base64 })
-        });
-        const text = await res.text();
-        status.textContent = text.includes("✅")
-          ? "✅ Upload complete!"
-          : "❌ Server says: " + text;
+        const res  = await fetch(WEB_APP_URL);
+        const txt  = await res.text();
+        status.textContent = "📶 Ping: " + txt;
       } catch (err) {
-        status.textContent = "❌ Upload failed: " + err.message;
-      } finally {
-        spinner.style.display = "none";
+        status.textContent = "❌ Ping failed: " + err.message;
       }
-    };
+    }
 
-    reader.readAsDataURL(file);
-  }
+    async function uploadImage() {
+      const fileInput = document.getElementById('fileInput');
+      const file      = fileInput.files[0];
+      const spinner   = document.getElementById('spinner');
+      const status    = document.getElementById('status');
+
+      if (!file) {
+        status.textContent = "⚠️ Please select a photo.";
+        return;
+      }
+
+      spinner.style.display = "block";
+      status.textContent     = "⏳ Uploading...";
+
+      const reader = new FileReader();
+      reader.onload = async () => {
+        // Strip the data URI prefix:
+        const base64 = reader.result.replace(/^data:image\/\w+;base64,/, "");
+
+        try {
+          // Use no-cors to bypass fetch blocking; API will still receive the data.
+          await fetch(WEB_APP_URL, {
+            method: "POST",
+            mode:   "no-cors",
+            body:   JSON.stringify({ image: base64 })
+          });
+          status.textContent = "✅ Upload initiated! Check your Sheet.";
+        } catch (err) {
+          status.textContent = "❌ Upload failed: " + err.message;
+        } finally {
+          spinner.style.display = "none";
+        }
+      };
+
+      reader.readAsDataURL(file);
+    }
   </script>
 </body>
 </html>
