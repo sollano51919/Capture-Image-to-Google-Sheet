@@ -82,23 +82,26 @@
       }
 
       spinner.style.display = "block";
-      status.textContent = "⏳ Uploading... (Check Google Sheet)";
+      status.textContent = "⏳ Uploading...";
 
       const reader = new FileReader();
       reader.onload = async function () {
         const base64 = reader.result.replace(/^data:image\/\w+;base64,/, "");
 
         try {
-          await fetch("https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec", {
+          const response = await fetch("https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec", {
             method: "POST",
-            mode: "no-cors", // Bypass CORS
             headers: {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({ image: base64 })
           });
 
-          status.textContent = "✅ Upload complete! Check Google Sheet.";
+          const result = await response.text();
+
+          status.textContent = result.includes("✅")
+            ? "✅ Success! Image uploaded."
+            : "❌ Something went wrong: " + result;
         } catch (error) {
           status.textContent = "❌ Upload failed: " + error.message;
         } finally {
