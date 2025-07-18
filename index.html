@@ -98,10 +98,12 @@
           });
 
           const result = await response.text();
+          if (result.includes("✅")) {
+            status.textContent = result;
+          } else {
+            status.textContent = "❌ Upload error: " + result;
+          }
 
-          status.textContent = result.includes("✅")
-            ? "✅ Success! Image uploaded."
-            : "❌ Something went wrong: " + result;
         } catch (error) {
           status.textContent = "❌ Upload failed: " + error.message;
         } finally {
