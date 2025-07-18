@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>📸 Snap to Sheet</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
@@ -78,21 +78,28 @@
 <body>
   <h1>📸 Snap to Sheet</h1>
   <div class="card">
-    <input type="file" accept="image/*" capture="environment" id="fileInput">
-    <button onclick="uploadImage()">Upload to Google Sheet</button>
+    <form method="POST" action="https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec" target="hiddenFrame" id="uploadForm">
+      <input type="file" accept="image/*" capture="environment" id="fileInput" />
+      <input type="hidden" name="image" id="imageData" />
+      <button type="submit">Upload to Google Sheet</button>
+    </form>
     <div class="spinner" id="spinner"></div>
     <div id="status"></div>
+    <iframe name="hiddenFrame" style="display: none;"></iframe>
   </div>
 
   <script>
-    async function uploadImage() {
-      const fileInput = document.getElementById('fileInput');
-      const file = fileInput.files[0];
-      const spinner = document.getElementById('spinner');
-      const status = document.getElementById('status');
+    const form = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('fileInput');
+    const imageData = document.getElementById('imageData');
+    const spinner = document.getElementById('spinner');
+    const status = document.getElementById('status');
 
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const file = fileInput.files[0];
       if (!file) {
-        status.textContent = "⚠️ Please take or select a photo.";
+        status.textContent = "⚠️ Please select a photo.";
         return;
       }
 
@@ -100,31 +107,15 @@
       status.textContent = "";
 
       const reader = new FileReader();
-      reader.onload = async function () {
-        const base64 = reader.result.split(',')[1]; // Remove data:image/...;base64,
-
-        const formData = new FormData();
-        formData.append("image", base64);
-
-        try {
-          const response = await fetch("https://script.google.com/macros/s/AKfycbwPxmhfqdbhZhuRqTpw0FesCUYa0SsxoBYOJLY_jhht4s2ltcBU1ws6Zw5T_r79yMFyyQ/exec", {
-            method: "POST",
-            body: formData
-          });
-
-          const result = await response.text();
-          status.textContent = result.includes("✅")
-            ? "✅ Success! Image uploaded."
-            : "❌ Something went wrong.";
-        } catch (error) {
-          status.textContent = "❌ Upload failed: " + error.message;
-        } finally {
-          spinner.style.display = "none";
-        }
+      reader.onload = function () {
+        const base64 = reader.result.split(',')[1];
+        imageData.value = base64;
+        form.submit();
+        spinner.style.display = "none";
+        status.textContent = "⏳ Uploading... (Check Google Sheet)";
       };
-
       reader.readAsDataURL(file);
-    }
+    });
   </script>
 </body>
 </html>
