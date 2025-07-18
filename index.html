@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>📸 Snap to Sheet</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -14,7 +14,7 @@
       margin: 0;
     }
     .card {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255,255,255,0.1);
       border-radius: 12px;
       padding: 2rem;
       max-width: 400px;
@@ -63,7 +63,7 @@
 <body>
   <h1>📸 Snap to Sheet</h1>
   <div class="card">
-    <input type="file" accept="image/*" capture="environment" id="fileInput">
+    <input type="file" accept="image/*" capture="environment" id="fileInput" />
     <button onclick="uploadImage()">Upload to Google Sheet</button>
     <div class="spinner" id="spinner"></div>
     <div id="status"></div>
@@ -86,21 +86,21 @@
 
       const reader = new FileReader();
       reader.onload = async function () {
-        const base64Image = reader.result;
+        const base64 = reader.result.replace(/^data:image\/\w+;base64,/, "");
 
         try {
-          const response = await fetch("https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec", {
+          const response = await fetch("YOUR_WEB_APP_URL", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ image: base64Image })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: base64 })
           });
 
           const text = await response.text();
-          status.textContent = text.includes("✅") ? "✅ Upload complete!" : text;
-        } catch (error) {
-          status.textContent = "❌ Upload failed: " + error.message;
+          status.textContent = text.includes("✅")
+            ? "✅ Upload complete!"
+            : "❌ Server error: " + text;
+        } catch (err) {
+          status.textContent = "❌ Upload failed: " + err.message;
         } finally {
           spinner.style.display = "none";
         }
