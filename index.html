@@ -103,11 +103,10 @@
       formData.append("image", file);
 
       try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycbzuDQ4EaRQAyXZ2ZMtA-0iSxhgDJC8Y9NvglXIycmd0nOkO9jMfixV0ScDQzDT18VUw/exec", {
-        method: "POST",
-        body: formData
+const response = await fetch("https://script.google.com/macros/s/AKfycbw-O19Soqou3oHwVjafyOKQM6xX7tWBW38zJp6SCs_Hf19ZEU5UiXnN--jkod_s6y9x/exec", {
+  method: "POST",
+  body: formData
 });
-
         const result = await response.text();
         status.textContent = result.includes("✅") ? "✅ Success! Image uploaded." : "❌ Something went wrong.";
       } catch (error) {
