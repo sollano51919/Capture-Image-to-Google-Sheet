@@ -14,74 +14,73 @@
       margin: 0;
     }
     .card {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       padding: 2rem;
       max-width: 400px;
       margin: auto;
       box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     }
-    input, button {
+    input[type="file"], button {
       margin: 1rem 0;
       padding: 0.75rem;
       width: 100%;
       border-radius: 8px;
       border: none;
-      font-size: 1rem;
       font-weight: bold;
+      font-size: 1rem;
     }
-    input { background: #fff; color: #333; }
+    input[type="file"] {
+      background: #fff;
+      color: #333;
+    }
     button {
       background: #fff;
       color: #0072ff;
       cursor: pointer;
     }
-    button:hover { background: #e0e0e0; }
-    #status { margin-top: 1rem; }
+    button:hover {
+      background: #e0e0e0;
+    }
+    #status {
+      margin-top: 1rem;
+    }
     .spinner {
       display: none;
       margin: 1rem auto;
-      width: 40px; height: 40px;
+      width: 40px;
+      height: 40px;
       border: 4px solid #fff;
       border-top: 4px solid #0072ff;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
   <h1>📸 Snap to Sheet</h1>
   <div class="card">
     <input type="file" accept="image/*" capture="environment" id="fileInput" />
-    <button onclick="uploadImage()">Upload Image</button>
+    <button onclick="uploadImage()">Upload to Google Sheet</button>
     <div class="spinner" id="spinner"></div>
     <div id="status"></div>
-    <button onclick="pingApi()" style="background:#0072ff;color:#fff;">
-      Ping Web App
-    </button>
   </div>
 
+  <!-- hidden iframe to avoid CORS -->
+  <iframe name="uploadTarget" style="display:none;"></iframe>
+
   <script>
-    // ← Paste your deployed /exec URL here:
+    // ← Replace with your deployed Apps Script /exec URL:
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec";
 
-    async function pingApi() {
-      const status = document.getElementById('status');
-      try {
-        const res  = await fetch(WEB_APP_URL);
-        const txt  = await res.text();
-        status.textContent = "📶 Ping: " + txt;
-      } catch (err) {
-        status.textContent = "❌ Ping failed: " + err.message;
-      }
-    }
-
-    async function uploadImage() {
-      const fileInput = document.getElementById('fileInput');
-      const file      = fileInput.files[0];
-      const spinner   = document.getElementById('spinner');
-      const status    = document.getElementById('status');
+    function uploadImage() {
+      const input   = document.getElementById('fileInput');
+      const file    = input.files[0];
+      const spinner = document.getElementById('spinner');
+      const status  = document.getElementById('status');
 
       if (!file) {
         status.textContent = "⚠️ Please select a photo.";
@@ -89,28 +88,32 @@
       }
 
       spinner.style.display = "block";
-      status.textContent     = "⏳ Uploading...";
+      status.textContent = "⏳ Uploading…";
 
       const reader = new FileReader();
-      reader.onload = async () => {
-        // Strip the data URI prefix:
+      reader.onload = () => {
+        // strip prefix
         const base64 = reader.result.replace(/^data:image\/\w+;base64,/, "");
 
-        try {
-          // Use no-cors to bypass fetch blocking; API will still receive the data.
-          await fetch(WEB_APP_URL, {
-            method: "POST",
-            mode:   "no-cors",
-            body:   JSON.stringify({ image: base64 })
-          });
-          status.textContent = "✅ Upload initiated! Check your Sheet.";
-        } catch (err) {
-          status.textContent = "❌ Upload failed: " + err.message;
-        } finally {
-          spinner.style.display = "none";
-        }
-      };
+        // build & submit hidden form
+        const form = document.createElement('form');
+        form.style.display = 'none';
+        form.method = 'POST';
+        form.action = WEB_APP_URL;
+        form.target = 'uploadTarget';
 
+        const field = document.createElement('input');
+        field.name  = 'image';
+        field.value = base64;
+        form.appendChild(field);
+
+        document.body.appendChild(form);
+        form.submit();
+        form.remove();
+
+        spinner.style.display = "none";
+        status.textContent = "✅ Upload initiated! Check your Sheet.";
+      };
       reader.readAsDataURL(file);
     }
   </script>
