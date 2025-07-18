@@ -63,7 +63,7 @@
 <body>
   <h1>📸 Snap to Sheet</h1>
   <div class="card">
-    <input type="file" accept="image/*" capture="environment" id="fileInput">
+    <input type="file" accept="image/*" id="fileInput">
     <button onclick="uploadImage()">Upload to Google Sheet</button>
     <div class="spinner" id="spinner"></div>
     <div id="status"></div>
@@ -77,12 +77,12 @@
       const status = document.getElementById('status');
 
       if (!file) {
-        status.textContent = "⚠️ Please take or select a photo.";
+        status.textContent = "⚠️ Please select an image file.";
         return;
       }
 
       spinner.style.display = "block";
-      status.textContent = "⏳ Uploading...";
+      status.textContent = "⏳ Uploading... (Check Google Sheet)";
 
       const reader = new FileReader();
       reader.onload = async function () {
@@ -91,9 +91,7 @@
         try {
           const response = await fetch("https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ image: base64 })
           });
 
