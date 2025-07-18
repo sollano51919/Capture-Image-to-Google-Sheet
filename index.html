@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <title>📸 Snap to Sheet</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #00c6ff, #0072ff);
+      background: linear-gradient(to right,#00c6ff,#0072ff);
       color: #fff;
       text-align: center;
       padding: 2rem;
       margin: 0;
     }
     .card {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255,255,255,0.1);
       border-radius: 12px;
       padding: 2rem;
       max-width: 400px;
@@ -30,92 +30,55 @@
       font-weight: bold;
       font-size: 1rem;
     }
-    input[type="file"] {
-      background: #fff;
-      color: #333;
-    }
-    button {
-      background: #fff;
-      color: #0072ff;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #e0e0e0;
-    }
-    #status {
-      margin-top: 1rem;
-    }
-    .spinner {
-      display: none;
-      margin: 1rem auto;
-      width: 40px;
-      height: 40px;
-      border: 4px solid #fff;
-      border-top: 4px solid #0072ff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    input[type="file"] { background: #fff; color: #333; }
+    button { background: #fff; color: #0072ff; cursor: pointer; }
+    button:hover { background: #e0e0e0; }
+    #status { margin-top: 1rem; }
   </style>
 </head>
 <body>
   <h1>📸 Snap to Sheet</h1>
   <div class="card">
-    <input type="file" accept="image/*" capture="environment" id="fileInput" />
-    <button onclick="uploadImage()">Upload to Google Sheet</button>
-    <div class="spinner" id="spinner"></div>
+    <form id="uploadForm"
+          method="post"
+          action="https://script.google.com/macros/s/YOUR_ID/exec"
+          target="uploadTarget">
+      <input type="file" accept="image/*" capture="environment" id="fileInput" />
+      <input type="hidden" name="image" id="imageField" />
+      <button type="submit">Upload to Google Sheet</button>
+    </form>
+
+    <iframe name="uploadTarget" style="display:none;"></iframe>
     <div id="status"></div>
   </div>
 
-  <!-- hidden iframe to avoid CORS -->
-  <iframe name="uploadTarget" style="display:none;"></iframe>
-
   <script>
-    // ← Replace with your deployed Apps Script /exec URL:
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec";
+    const fileInput  = document.getElementById('fileInput');
+    const imageField = document.getElementById('imageField');
+    const statusDiv  = document.getElementById('status');
+    const form       = document.getElementById('uploadForm');
 
-    function uploadImage() {
-      const input   = document.getElementById('fileInput');
-      const file    = input.files[0];
-      const spinner = document.getElementById('spinner');
-      const status  = document.getElementById('status');
-
+    // When a file is picked, read & store its base64 (no prefix)
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
       if (!file) {
-        status.textContent = "⚠️ Please select a photo.";
+        statusDiv.textContent = "⚠️ Please select a photo.";
         return;
       }
-
-      spinner.style.display = "block";
-      status.textContent = "⏳ Uploading…";
-
+      statusDiv.textContent = "⏳ Encoding image…";
       const reader = new FileReader();
       reader.onload = () => {
-        // strip prefix
-        const base64 = reader.result.replace(/^data:image\/\w+;base64,/, "");
-
-        // build & submit hidden form
-        const form = document.createElement('form');
-        form.style.display = 'none';
-        form.method = 'POST';
-        form.action = WEB_APP_URL;
-        form.target = 'uploadTarget';
-
-        const field = document.createElement('input');
-        field.name  = 'image';
-        field.value = base64;
-        form.appendChild(field);
-
-        document.body.appendChild(form);
-        form.submit();
-        form.remove();
-
-        spinner.style.display = "none";
-        status.textContent = "✅ Upload initiated! Check your Sheet.";
+        imageField.value = reader.result
+          .replace(/^data:image\/\w+;base64,/, '');
+        statusDiv.textContent = "✔️ Ready to upload!";
       };
       reader.readAsDataURL(file);
-    }
+    });
+
+    // When the form submits, show a spinner/status and let the iframe fire the request
+    form.addEventListener('submit', () => {
+      statusDiv.textContent = "⏳ Upload initiated… Check your Sheet.";
+    });
   </script>
 </body>
 </html>
