@@ -103,15 +103,14 @@
       reader.onload = async function () {
         const base64 = reader.result.split(',')[1]; // Remove data:image/...;base64,
 
+        const formData = new FormData();
+        formData.append("image", base64);
+
         try {
           const response = await fetch("https://script.google.com/macros/s/AKfycbwPxmhfqdbhZhuRqTpw0FesCUYa0SsxoBYOJLY_jhht4s2ltcBU1ws6Zw5T_r79yMFyyQ/exec", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({ image: base64 })
-});
-
+            method: "POST",
+            body: formData
+          });
 
           const result = await response.text();
           status.textContent = result.includes("✅")
