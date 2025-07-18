@@ -21,93 +21,101 @@
       margin: auto;
       box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     }
-    input[type="file"], button {
+    input, button {
       margin: 1rem 0;
       padding: 0.75rem;
       width: 100%;
       border-radius: 8px;
       border: none;
-      font-weight: bold;
       font-size: 1rem;
+      font-weight: bold;
     }
-    input[type="file"] {
-      background: #fff;
-      color: #333;
-    }
+    input { background: #fff; color: #333; }
     button {
       background: #fff;
       color: #0072ff;
       cursor: pointer;
     }
-    button:hover {
-      background: #e0e0e0;
-    }
-    #status {
-      margin-top: 1rem;
-    }
+    button:hover { background: #e0e0e0; }
+    #status { margin-top: 1rem; }
     .spinner {
       display: none;
       margin: 1rem auto;
-      width: 40px;
-      height: 40px;
+      width: 40px; height: 40px;
       border: 4px solid #fff;
       border-top: 4px solid #0072ff;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
   <h1>📸 Snap to Sheet</h1>
   <div class="card">
     <input type="file" accept="image/*" capture="environment" id="fileInput" />
-    <button onclick="uploadImage()">Upload to Google Sheet</button>
+    <button onclick="uploadImage()">Upload Image</button>
     <div class="spinner" id="spinner"></div>
     <div id="status"></div>
+    <button onclick="pingApi()" style="background:#0072ff;color:#fff;">
+      Ping Web App
+    </button>
   </div>
 
   <script>
-    async function uploadImage() {
-      const fileInput = document.getElementById('fileInput');
-      const file = fileInput.files[0];
-      const spinner = document.getElementById('spinner');
-      const status = document.getElementById('status');
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec";  // ← paste your /exec URL here
 
-      if (!file) {
-        status.textContent = "⚠️ Please take or select a photo.";
-        return;
-      }
-
-      spinner.style.display = "block";
-      status.textContent = "⏳ Uploading...";
-
-      const reader = new FileReader();
-      reader.onload = async function () {
-        const base64 = reader.result.replace(/^data:image\/\w+;base64,/, "");
-
-        try {
-          const response = await fetch("https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: base64 })
-          });
-
-          const text = await response.text();
-          status.textContent = text.includes("✅")
-            ? "✅ Upload complete!"
-            : "❌ Server error: " + text;
-        } catch (err) {
-          status.textContent = "❌ Upload failed: " + err.message;
-        } finally {
-          spinner.style.display = "none";
-        }
-      };
-
-      reader.readAsDataURL(file);
+  // Quick connectivity test
+  async function pingApi() {
+    const status = document.getElementById('status');
+    try {
+      const res = await fetch(WEB_APP_URL);
+      const text = await res.text();
+      status.textContent = "Ping: " + text;
+    } catch (err) {
+      status.textContent = "❌ Ping failed: " + err.message;
     }
+  }
+
+  // Main upload flow
+  async function uploadImage() {
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    const spinner = document.getElementById('spinner');
+    const status  = document.getElementById('status');
+
+    if (!file) {
+      status.textContent = "⚠️ Please select a photo.";
+      return;
+    }
+
+    spinner.style.display = "block";
+    status.textContent = "⏳ Uploading...";
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      // Strip prefix so backend sees only raw base64
+      const base64 = reader.result.replace(/^data:image\/\w+;base64,/, "");
+
+      try {
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: base64 })
+        });
+        const text = await res.text();
+        status.textContent = text.includes("✅")
+          ? "✅ Upload complete!"
+          : "❌ Server says: " + text;
+      } catch (err) {
+        status.textContent = "❌ Upload failed: " + err.message;
+      } finally {
+        spinner.style.display = "none";
+      }
+    };
+
+    reader.readAsDataURL(file);
+  }
   </script>
 </body>
 </html>
