@@ -89,7 +89,7 @@
       const reader = new FileReader();
       reader.onload = async () => {
         const fullDataUri = reader.result;
-        const base64 = fullDataUri.split(',')[1]; // ✅ Strip data:image/...;base64,
+        const base64 = fullDataUri.split(',')[1]; // ✅ Strip data URI prefix
 
         status.textContent = '⏳ Uploading to Apps Script…';
 
