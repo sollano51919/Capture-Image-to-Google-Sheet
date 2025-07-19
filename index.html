@@ -77,34 +77,43 @@
     const status    = document.getElementById('status');
 
     uploadBtn.addEventListener('click', () => {
-      const file = fileInput.files[0];
-      if (!file) {
-        status.textContent = "⚠️ Please select a photo.";
-        return;
-      }
+  const file = fileInput.files[0];
+  if (!file) {
+    status.textContent = "⚠️ Please select a photo.";
+    return;
+  }
 
-      spinner.style.display = 'block';
-      status.textContent = '⏳ Reading image…';
+  // Debugging: Log file details to ensure the file is selected
+  console.log("Selected file: ", file);
+  console.log("File type: ", file.type);
+  console.log("File size: ", file.size);
 
-      // Create a FormData object and append the file
-      const formData = new FormData();
-      formData.append("image", file);
+  spinner.style.display = 'block';
+  status.textContent = '⏳ Reading image…';
 
-      // Send the FormData object to Google Apps Script using Fetch API
-      fetch("https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec", {
-        method: "POST",
-        body: formData
-      })
-      .then(response => response.text())
-      .then(result => {
-        spinner.style.display = 'none';
-        status.textContent = result;
-      })
-      .catch(error => {
-        spinner.style.display = 'none';
-        status.textContent = "❌ Upload failed: " + error.message;
-      });
-    });
+  // Create a FormData object and append the file
+  const formData = new FormData();
+  formData.append("image", file);
+
+  // Debugging: Log the FormData content (file name and type)
+  console.log("FormData content: ", formData);
+
+  // Send the FormData object to Google Apps Script using Fetch API
+  fetch("https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec", {
+    method: "POST",
+    body: formData
+  })
+  .then(response => response.text())
+  .then(result => {
+    spinner.style.display = 'none';
+    status.textContent = result;
+  })
+  .catch(error => {
+    spinner.style.display = 'none';
+    status.textContent = "❌ Upload failed: " + error.message;
+  });
+});
+
   </script>
 </body>
 </html>
