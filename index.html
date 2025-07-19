@@ -89,7 +89,11 @@
       const reader = new FileReader();
       reader.onload = async () => {
         const fullDataUri = reader.result;
-        const base64 = fullDataUri.split(',')[1]; // ✅ Raw base64 only
+       const base64 = fullDataUri.split(',')[1]; // ✅ Raw base64 only
+
+      // Log base64 string length and the first 30 characters for debugging
+      console.log("Base64 string length:", base64.length);
+      console.log("Base64 preview:", base64.substring(0, 30));  // Check first 30 characters
 
         status.textContent = '⏳ Uploading to Apps Script…';
 
