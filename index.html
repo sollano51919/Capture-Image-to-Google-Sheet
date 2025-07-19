@@ -82,24 +82,28 @@
         status.textContent = "⚠️ Please select a photo.";
         return;
       }
-      // Log file type and size for debugging
-      console.log("File Type:", file.type);
-      console.log("File Size:", file.size);
-      
+
       spinner.style.display = 'block';
       status.textContent = '⏳ Reading image…';
 
       const reader = new FileReader();
       reader.onload = async () => {
         const fullDataUri = reader.result;
-      console.log("Full Data URI:", fullDataUri); // Log the full data URI to see the raw data
+        console.log("Full Data URI:", fullDataUri); // Log the full Data URI
 
-      // Remove the data URL scheme part from base64 string (i.e., 'data:image/png;base64,')
-      const base64 = fullDataUri.split(',')[1]; // ✅ Raw base64 only
+        // Remove the data URL scheme part from base64 string (i.e., 'data:image/png;base64,')
+        const base64 = fullDataUri.split(',')[1]; // ✅ Raw base64 only
 
-      // Log base64 string length and preview of first 500 characters for debugging
-      console.log("Base64 string length:", base64.length);
-      console.log("Base64 preview:", base64.substring(0, 500));  // Check first 500 characters
+        // Log base64 string length and preview of first 100 characters for debugging
+        console.log("Base64 string length:", base64.length);
+        console.log("Base64 preview:", base64.substring(0, 100));  // Check first 100 characters
+
+        // Check if the base64 string has a reasonable size (greater than 1000 characters, as a rough threshold)
+        if (base64.length < 1000) {
+          status.textContent = "⚠️ The base64 string seems too short. Please upload a valid image.";
+          spinner.style.display = 'none';
+          return;
+        }
 
         // Clean up the base64 string to remove any potential newlines or extra spaces
         const cleanedBase64 = base64.replace(/\s+/g, '');
