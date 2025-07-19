@@ -83,36 +83,38 @@
         return;
       }
 
-      // Debugging: Log file details to ensure the file is selected
-      console.log("Selected file: ", file);
-      console.log("File type: ", file.type);
-      console.log("File size: ", file.size);
-
       spinner.style.display = 'block';
-      status.textContent = '⏳ Reading image…';
+      status.textContent = '⏳ Encoding image…';
 
-      // Create a FormData object and append the file
-      const formData = new FormData();
-      formData.append("image", file);  // Make sure the key "image" matches the one in Apps Script
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const fullDataUri = reader.result;
+        const base64 = fullDataUri.split(',')[1]; // ✅ Clean Base64 only
 
-      // Debugging: Log the FormData content (file name and type)
-      console.log("FormData content: ", formData);
+        const params = new URLSearchParams();
+        params.append("image", base64);
 
-      // Send the FormData object to Google Apps Script using Fetch API
-      fetch("https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec", {
-        method: "POST",
-        body: formData
-      })
-      .then(response => response.text())
-      .then(result => {
-        spinner.style.display = 'none';
-        status.textContent = result;
-      })
-      .catch(error => {
-        spinner.style.display = 'none';
-        status.textContent = "❌ Upload failed: " + error.message;
-        console.error("Upload error: ", error);
-      });
+        status.textContent = '⏳ Uploading to Apps Script…';
+
+        try {
+          const response = await fetch("https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: params.toString()
+          });
+
+          const result = await response.text();
+          spinner.style.display = 'none';
+          status.textContent = result;
+        } catch (error) {
+          spinner.style.display = 'none';
+          status.textContent = "❌ Upload failed: " + error.message;
+        }
+      };
+
+      reader.readAsDataURL(file); // ✅ Converts image to Base64
     });
   </script>
 </body>
