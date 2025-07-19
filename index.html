@@ -103,23 +103,33 @@
       formData.append("image", file);
 
       // Send the FormData object to Google Apps Script using Fetch API
-      fetch("https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec", {
+    fetch("https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec", {
   method: "POST",
-  body: formData
+  body: formData,
+  // ✅ Allow Apps Script to treat this as raw POST
+  muteHttpExceptions: true // Optional, useful if you want full error messages
 })
-.then(response => response.json()) // Ensure the response is parsed as JSON
-.then(result => {
-  spinner.style.display = 'none';
-  if (result.status === "success") {
-    status.textContent = result.message;
-  } else {
-    status.textContent = "❌ Upload failed: " + result.message;
+.then(async response => {
+  const text = await response.text();
+  try {
+    const result = JSON.parse(text); // ✅ Safe parse
+    spinner.style.display = 'none';
+    if (result.status === "success") {
+      status.textContent = result.message;
+    } else {
+      status.textContent = "❌ Upload failed: " + result.message;
+    }
+  } catch (err) {
+    spinner.style.display = 'none';
+    status.textContent = "❌ Unexpected response: " + text;
+    console.error("Parse error:", err, "Raw response:", text);
   }
 })
 .catch(error => {
   spinner.style.display = 'none';
   status.textContent = "❌ Upload failed: " + error.message;
 });
+
     });
   </script>
 </body>
