@@ -104,22 +104,22 @@
 
       // Send the FormData object to Google Apps Script using Fetch API
       fetch("https://script.google.com/macros/s/AKfycby8cpsiDdLclfcR9bHULOcbOZUvrXI56qWoKAQNbyhmGqKu3J5T8xOSLSfOylLWPI3dWg/exec", {
-        method: "POST",
-        body: formData
-      })
-      .then(response => response.json())
-      .then(result => {
-        spinner.style.display = 'none';
-        if (result.status === "success") {
-          status.textContent = result.message;
-        } else {
-          status.textContent = "❌ Upload failed: " + result.message;
-        }
-      })
-      .catch(error => {
-        spinner.style.display = 'none';
-        status.textContent = "❌ Upload failed: " + error.message;
-      });
+  method: "POST",
+  body: formData
+})
+.then(response => response.json()) // Ensure the response is parsed as JSON
+.then(result => {
+  spinner.style.display = 'none';
+  if (result.status === "success") {
+    status.textContent = result.message;
+  } else {
+    status.textContent = "❌ Upload failed: " + result.message;
+  }
+})
+.catch(error => {
+  spinner.style.display = 'none';
+  status.textContent = "❌ Upload failed: " + error.message;
+});
     });
   </script>
 </body>
