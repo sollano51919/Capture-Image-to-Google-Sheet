@@ -89,6 +89,9 @@
       const reader = new FileReader();
       reader.onload = async () => {
         const fullDataUri = reader.result;
+        console.log("Full Data URI:", fullDataUri); // Log full data URI to see the raw data
+
+        // Remove the data URL scheme part from base64 string (i.e., 'data:image/png;base64,')
         const base64 = fullDataUri.split(',')[1]; // ✅ Raw base64 only
 
         // Log base64 string length and preview of first 100 characters for debugging
